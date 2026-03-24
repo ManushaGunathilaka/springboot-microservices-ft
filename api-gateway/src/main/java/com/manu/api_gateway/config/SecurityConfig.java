@@ -25,8 +25,12 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        return httpSecurity.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+        return httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Wire CORS config explicitly
+                .csrf(csrf -> csrf.disable())                                        // ✅ Disable CSRF for stateless APIs
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // ✅ Allow preflight
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
@@ -35,9 +39,10 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // ✅ Remove path - origin is only protocol://domain:port
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // ✅ Include OPTIONS
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true); // ✅ Required if sending Authorization headers
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
