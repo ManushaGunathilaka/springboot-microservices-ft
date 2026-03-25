@@ -40,10 +40,17 @@ public class OrderService {
 
             // Publish an event to notify other services about the new order
             if (orderRequest.getUserDetails() != null) {
-                OrderPlacedEvent orderPlacedEvent = new OrderPlacedEvent(order.getOrderNumber(), orderRequest.getUserDetails().email());
+
+                OrderPlacedEvent orderPlacedEvent = new OrderPlacedEvent();
+                orderPlacedEvent.setOrderNumber(savedOrder.getOrderNumber());
+                orderPlacedEvent.setEmail(orderRequest.getUserDetails().email());
+                orderPlacedEvent.setFirstName(orderRequest.getUserDetails().firstName());
+                orderPlacedEvent.setLastName(orderRequest.getUserDetails().lastName());
+
                 log.info("Start - Sending OrderPlacedEvent {} to Kafka topic 'order-placed'", orderPlacedEvent);
                 kafkaTemplate.send("order-placed", orderPlacedEvent);
                 log.info("End - OrderPlacedEvent {} sent to Kafka topic 'order-placed'", orderPlacedEvent);
+
             } else {
                 log.warn("User details not available for order {}", order.getOrderNumber());
             }
