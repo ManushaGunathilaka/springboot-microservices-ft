@@ -38,7 +38,6 @@
 **Architecture**
 
 ![Architecture Diagram](./assets/ms-architecture-diagram.gif)
-```
 
 Simple ASCII overview (service ports configured in each service application.properties):
 
