@@ -146,6 +146,16 @@ Swagger / OpenAPI
 - Each service has Springdoc OpenAPI enabled; api-gateway aggregates service docs under:
   - `/swagger-ui.html` (gateway) with aggregated URLs set in api-gateway properties (see [api-gateway/src/main/resources/application.properties](api-gateway/src/main/resources/application.properties)).
 
+**API Documentation**
+- Aggregated (API Gateway): http://localhost:9000/swagger-ui.html (aggregates product, order, inventory)
+- Product service: http://localhost:8080/swagger-ui.html
+- Order service: http://localhost:8081/swagger-ui.html
+- Inventory service: http://localhost:8082/swagger-ui.html
+- OpenAPI JSON endpoints:
+  - Product: http://localhost:8080/v3/api-docs
+  - Order: http://localhost:8081/v3/api-docs
+  - Inventory: http://localhost:8082/v3/api-docs
+
 **Contributing**
 - Contributions are welcome! Please:
   1. Fork the repo
