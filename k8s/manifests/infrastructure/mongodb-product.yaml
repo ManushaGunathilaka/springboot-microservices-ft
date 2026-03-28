@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mongodb-product-secret
+type: Opaque
+data:
+  mongo-root-username: cm9vdA==
+  mongo-root-password: MTIzNA==
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-mongodb-product
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/mongodb-product
+  persistentVolumeReclaimPolicy: Retain
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-mongodb-product
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-product
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-product
+  template:
+    metadata:
+      labels:
+        app: mongodb-product
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:8.2
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-product-secret
+                  key: mongo-root-password
+            - name: MONGO_INITDB_DATABASE
+              value: product-service
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+      volumes:
+        - name: mongo-data
+          persistentVolumeClaim:
+            claimName: pvc-mongodb-product
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-product
+spec:
+  type: ClusterIP
+  ports:
+    - port: 27017
+      targetPort: 27017
+      protocol: TCP
+  selector:
+    app: mongodb-product

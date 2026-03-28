@@ -1,0 +1,89 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-inventory-secret
+type: Opaque
+data:
+  mysql-root-password: MTIzNA==
+  mysql-password: MTIzNA==
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-mysql-inventory
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/mysql-inventory
+  persistentVolumeReclaimPolicy: Retain
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-mysql-inventory
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-inventory
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-inventory
+  template:
+    metadata:
+      labels:
+        app: mysql-inventory
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-inventory-secret
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: manu-inventoryrdb-ms
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-inventory-secret
+                  key: mysql-password
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: pvc-mysql-inventory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-inventory
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+  selector:
+    app: mysql-inventory
