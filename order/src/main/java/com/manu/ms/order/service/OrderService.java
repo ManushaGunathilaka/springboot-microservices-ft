@@ -4,6 +4,7 @@ import com.manu.ms.order.client.InventoryClient;
 import com.manu.ms.order.dto.OrderRequest;
 import com.manu.ms.order.event.OrderPlacedEvent;
 import com.manu.ms.order.entity.Order;
+import com.manu.ms.order.exception.NotFoundException;
 import com.manu.ms.order.exception.OutOfStockException;
 import com.manu.ms.order.repositorty.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -68,5 +69,13 @@ public class OrderService {
 
     public Page<Order> getOrders(Pageable pageable) {
         return orderRepository.findAll(pageable);
+    }
+
+    public String deleteOrder(Long id) {
+        return orderRepository.findById(id).map(order -> {
+            orderRepository.delete(order);
+            log.info("Order {} deleted", id);
+            return "Order deleted successfully";
+        }).orElseThrow(() -> new NotFoundException("Order with id " + id + " not found."));
     }
 }

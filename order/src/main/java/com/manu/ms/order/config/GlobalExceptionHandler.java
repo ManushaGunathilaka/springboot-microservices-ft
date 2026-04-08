@@ -1,6 +1,7 @@
 package com.manu.ms.order.config;
 
 import com.manu.ms.order.exception.OutOfStockException;
+import com.manu.ms.order.exception.NotFoundException;
 import com.manu.ms.order.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +44,19 @@ public class GlobalExceptionHandler {
                 .traceId(traceId)
                 .build();
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex, WebRequest request) {
+        String traceId = UUID.randomUUID().toString();
+        log.warn("NotFoundException: {} | traceId={}", ex.getMessage(), traceId);
+        ErrorResponse error = ErrorResponse.builder()
+                .code(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                .message(ex.getMessage())
+                .timestamp(Instant.now().toString())
+                .traceId(traceId)
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(Exception.class)

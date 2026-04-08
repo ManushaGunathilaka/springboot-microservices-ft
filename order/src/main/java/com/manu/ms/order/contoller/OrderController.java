@@ -57,4 +57,17 @@ public class OrderController {
                 .build();
         return ResponseEntity.ok(successMessage);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<SuccessMessage> deleteOrder(@PathVariable("id") Long id) {
+        String result = orderService.deleteOrder(id);
+        SuccessMessage<String> successMessage = SuccessMessage.<String>builder()
+                .code(String.valueOf(HttpStatus.OK.value()))
+                .message("Order deleted successfully")
+                .timestamp(Instant.now().toString())
+                .traceId(UUID.randomUUID().toString())
+                .data(result)
+                .build();
+        return ResponseEntity.ok(successMessage);
+    }
 }
